@@ -25,7 +25,7 @@ namespace audio_video_recorder
       void callbackAudio(const audio_common_msgs::AudioDataConstPtr &audio_msg);
 
     protected:
-      boost::shared_ptr<ros::NodeHandle> _pnh;
+      boost::shared_ptr<ros::NodeHandle> _nh;
       ros::Subscriber _sub_image, _sub_audio;
       boost::shared_ptr<message_filters::Synchronizer<ExactSyncPolicy> > _sync;
       boost::shared_ptr<message_filters::Synchronizer<ApproximateSyncPolicy> > _async;

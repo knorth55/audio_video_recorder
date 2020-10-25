@@ -42,8 +42,9 @@ namespace audio_video_recorder
     ros::param::param<std::string>("~sample_format", sample_format, "S16LE");
     ros::param::param<int>("~queue_size", queue_size, 10);
 
-    _sub_image = _pnh->subscribe("input/image", queue_size, &AudioVideoRecorder::callbackImage, this);
-    _sub_audio = _pnh->subscribe("input/audio", queue_size, &AudioVideoRecorder::callbackAudio, this);
+    _nh.reset (new ros::NodeHandle ("~"));
+    _sub_image = _nh->subscribe("input/image", queue_size, &AudioVideoRecorder::callbackImage, this);
+    _sub_audio = _nh->subscribe("input/audio", queue_size, &AudioVideoRecorder::callbackAudio, this);
 
     _loop = g_main_loop_new(NULL, false);
     _pipeline = gst_pipeline_new("app_pipeline");
