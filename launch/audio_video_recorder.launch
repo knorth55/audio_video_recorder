@@ -3,7 +3,7 @@
   <arg name="image_topic" default="/usb_cam_node/image_raw" />
   <arg name="file_location" default="/tmp/test.mp4" />
   <arg name="do_timestamp" default="false"/>
-  <arg name="format" default="mp3"/>
+  <arg name="audio_format" default="mp3"/>
   <arg name="channels" default="1"/>
   <arg name="sample_rate" default="16000"/>
   <arg name="sample_format" default="S16LE"/>
@@ -15,7 +15,7 @@
     <rosparam subst_value="true">
       file_location: $(arg file_location) 
       do_timestamp: $(arg do_timestamp)
-      format: $(arg format)
+      audio_format: $(arg audio_format)
       channels: $(arg channels)
       sample_rate: $(arg sample_rate)
       sample_format: $(arg sample_format)

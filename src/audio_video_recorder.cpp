@@ -22,7 +22,7 @@ namespace audio_video_recorder
     std::string file_location;
     std::string device;
     bool do_timestamp;
-    std::string format;
+    std::string audio_format;
     int channels;
     int depth;
     int sample_rate;
@@ -35,7 +35,7 @@ namespace audio_video_recorder
     ros::param::param<std::string>("~file_location", file_location, "/tmp/test.mp4");
     ros::param::param<std::string>("~device", device, std::string());
     ros::param::param<bool>("~do_timestamp", do_timestamp, true);
-    ros::param::param<std::string>("~format", format, "mp3");
+    ros::param::param<std::string>("~audio_format", audio_format, "mp3");
     ros::param::param<int>("~channels", channels, 1);
     ros::param::param<int>("~depth", depth, 16);
     ros::param::param<int>("~sample_rate", sample_rate, 16000);
@@ -66,12 +66,12 @@ namespace audio_video_recorder
     _sink = gst_element_factory_make("filesink", "sink");
     g_object_set(G_OBJECT(_sink), "location", file_location.c_str(), NULL);
 
-    if (format == "mp3")
+    if (audio_format == "mp3")
     {
       gst_bin_add_many(GST_BIN(_pipeline), _source, _sink, NULL);
       gst_element_link(_source, _sink);
     }
-    else if (format == "wave")
+    else if (audio_format == "wave")
     {
       g_object_set( G_OBJECT(_source), "caps", caps, NULL);
       g_object_set (G_OBJECT (_source), "format", GST_FORMAT_TIME, NULL);
@@ -82,7 +82,7 @@ namespace audio_video_recorder
     }
     else
     {
-      ROS_ERROR("Unsupported format: %s", format.c_str());
+      ROS_ERROR("Unsupported format: %s", audio_format.c_str());
     }
 
     gst_element_set_state(GST_ELEMENT(_pipeline), GST_STATE_PLAYING);

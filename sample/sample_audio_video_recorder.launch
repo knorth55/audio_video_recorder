@@ -1,7 +1,7 @@
 <launch>
   <arg name="file_location" default="/tmp/test.mp4" />
   <arg name="do_timestamp" default="false"/>
-  <arg name="format" default="mp3"/>
+  <arg name="audio_format" default="mp3"/>
   <arg name="channels" default="1"/>
   <arg name="sample_rate" default="44100"/>
   <arg name="sample_format" default="S16LE"/>
@@ -9,7 +9,7 @@
   <node name="usb_cam_node" pkg="usb_cam" type="usb_cam_node" />
 
   <include file="$(find audio_capture)/launch/capture.launch">
-    <arg name="format" value="$(arg format)" />
+    <arg name="format" value="$(arg audio_format)" />
     <arg name="channels" value="$(arg channels)" />
     <arg name="sample_rate" value="$(arg sample_rate)" />
     <arg name="sample_format" value="$(arg sample_format)" />
@@ -20,7 +20,7 @@
     <arg name="image_topic" value="/usb_cam_node/image_raw" />
     <arg name="file_location" value="$(arg file_location)" />
     <arg name="do_timestamp" value="$(arg do_timestamp)" />
-    <arg name="format" value="$(arg format)" />
+    <arg name="audio_format" value="$(arg audio_format)" />
     <arg name="channels" value="$(arg channels)" />
     <arg name="sample_rate" value="$(arg sample_rate)" />
     <arg name="sample_format" value="$(arg sample_format)" />
