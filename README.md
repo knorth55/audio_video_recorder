@@ -1,2 +1,2 @@
 # audio_video_recorder
-ROS package for recording audio and video simaltaneously
+ROS package for recording audio and video synchronously
