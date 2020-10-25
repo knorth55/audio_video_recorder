@@ -31,7 +31,9 @@ namespace audio_video_recorder
       boost::shared_ptr<message_filters::Synchronizer<ApproximateSyncPolicy> > _async;
 
       boost::thread _gst_thread;
-      GstElement *_pipeline, *_source, *_sink, *_audio, *_filter;
+      GstElement *_pipeline, *_bin, *_mux, *_sink;
+      GstElement *_audio_source, *_audio_filter;
+      GstElement *_video_source, *_video_filter;
       GMainLoop *_loop;
   };
 }
