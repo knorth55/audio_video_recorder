@@ -31,5 +31,5 @@ add_dependencies(audio_video_recorder ${catkin_EXPORTED_TARGETS})
 install(TARGETS audio_video_recorder
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-# install(DIRECTORY launch
-#    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY launch sample
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

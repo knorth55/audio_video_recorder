@@ -1,0 +1,25 @@
+<launch>
+  <arg name="audio_topic" default="/audio/audio" />
+  <arg name="image_topic" default="/usb_cam_node/image_raw" />
+  <arg name="file_location" default="/tmp/test.mp4" />
+  <arg name="do_timestamp" default="false"/>
+  <arg name="format" default="mp3"/>
+  <arg name="channels" default="1"/>
+  <arg name="sample_rate" default="16000"/>
+  <arg name="sample_format" default="S16LE"/>
+
+  <node name="audio_video_recorder" pkg="audio_video_recorder"
+        type="audio_video_recorder" output="screen">
+    <remap from="~input/audio" to="$(arg audio_topic)" />
+    <remap from="~input/image" to="$(arg image_topic)" />
+    <rosparam subst_value="true">
+      file_location: $(arg file_location) 
+      do_timestamp: $(arg do_timestamp)
+      format: $(arg format)
+      channels: $(arg channels)
+      sample_rate: $(arg sample_rate)
+      sample_format: $(arg sample_format)
+    </rosparam>
+  </node>
+        
+</launch>
