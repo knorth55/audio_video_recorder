@@ -1,5 +1,5 @@
 <launch>
-  <arg name="file_location" default="/tmp/test.mp4" />
+  <arg name="file_location" default="/tmp/test.avi" />
   <arg name="do_timestamp" default="false"/>
   <arg name="audio_format" default="mp3"/>
   <arg name="channels" default="1"/>
