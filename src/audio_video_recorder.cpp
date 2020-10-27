@@ -69,8 +69,12 @@ namespace audio_video_recorder
     _bin = gst_bin_new("bin");
     g_object_set(G_OBJECT(_bin), "message-forward", TRUE, NULL);
     gst_bin_add_many(GST_BIN(_bin), _mux, _sink, NULL);
+    if (gst_element_link_many(_mux, _sink, NULL) != TRUE)
+    {
+      ROS_ERROR("failed to link gstreamer");
+      return;
+    }
     gst_bin_add(GST_BIN(_pipeline), _bin);
-    gst_element_link_many(_mux, _sink, NULL);
 
     g_audio_mux_pad = gst_ghost_pad_new("audio_sink", audio_mux_pad);
     g_video_mux_pad = gst_ghost_pad_new("video_sink", video_mux_pad);
@@ -87,9 +91,13 @@ namespace audio_video_recorder
       // gst_bin_add_many(GST_BIN(_pipeline), _audio_source, _mux, _sink, NULL);
       // gst_bin_add_many(GST_BIN(_pipeline), _video_source, _video_filter, _mux, _sink, NULL);
       gst_bin_add_many(GST_BIN(_pipeline), _audio_source, _video_source, _video_filter, NULL);
-      gst_element_link_many(_video_source, _video_filter, NULL);
-      gst_pad_link(audio_src_pad, g_audio_mux_pad);
-      gst_pad_link(video_src_pad, g_video_mux_pad);
+      if (gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
+          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
+          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
+      {
+        ROS_ERROR("failed to link gstreamer");
+        return;
+      }
     }
     else if (audio_format == "wave")
     {
@@ -110,10 +118,14 @@ namespace audio_video_recorder
       audio_src_pad = gst_element_get_static_pad(_audio_filter, "src");
 
       gst_bin_add_many(GST_BIN(_pipeline), _audio_source, _audio_filter, _video_source, _video_filter, NULL);
-      gst_element_link_many(_audio_source, _audio_filter, NULL);
-      gst_element_link_many(_video_source, _video_filter, NULL);
-      gst_pad_link(audio_src_pad, g_audio_mux_pad);
-      gst_pad_link(video_src_pad, g_video_mux_pad);
+      if (gst_element_link_many(_audio_source, _audio_filter, NULL) != TRUE ||
+          gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
+          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
+          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
+      {
+        ROS_ERROR("failed to link gstreamer");
+        return;
+      }
     }
     else
     {
