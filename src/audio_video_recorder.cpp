@@ -57,39 +57,8 @@ namespace audio_video_recorder
     _audio_source = gst_element_factory_make("appsrc", "audio_source");
     g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
     g_object_set(G_OBJECT(_audio_source), "do-timestamp", (do_timestamp) ? TRUE : FALSE, NULL);
-    if (audio_format == "mp3")
-    {
-      caps = gst_caps_new_simple(
-          "audio/mpeg",
-          "format", G_TYPE_STRING, sample_format.c_str(),
-          "rate", G_TYPE_INT, sample_rate,
-          "channels", G_TYPE_INT, channels,
-          "width",    G_TYPE_INT, depth,
-          "depth",    G_TYPE_INT, depth,
-          "signed",   G_TYPE_BOOLEAN, TRUE,
-          "layout", G_TYPE_STRING, "interleaved",
-          NULL);
-    }
-    else if (audio_format == "wave")
-    {
-      caps = gst_caps_new_simple(
-          "audio/x-raw",
-          "format", G_TYPE_STRING, sample_format.c_str(),
-          "rate", G_TYPE_INT, sample_rate,
-          "channels", G_TYPE_INT, channels,
-          "width",    G_TYPE_INT, depth,
-          "depth",    G_TYPE_INT, depth,
-          "signed",   G_TYPE_BOOLEAN, TRUE,
-          "layout", G_TYPE_STRING, "interleaved",
-          NULL);
-    }
-    else
-    {
-      ROS_ERROR("Unsupported format: %s", audio_format.c_str());
-    }
-    g_object_set( G_OBJECT(_audio_source), "caps", caps, NULL);
     gst_bin_add(GST_BIN(_pipeline), _audio_source);
-    gst_caps_unref(caps);
+    audio_src_pad = gst_element_get_static_pad(_audio_source, "src");
 
     // video source
     _video_source = gst_element_factory_make("videotestsrc", "video_source");
@@ -128,7 +97,6 @@ namespace audio_video_recorder
     ROS_INFO("Saving file to %s", file_location.c_str());
     if (audio_format == "mp3")
     {
-      audio_src_pad = gst_element_get_static_pad(_audio_source, "src");
       if (gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
           gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
           gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
@@ -139,11 +107,19 @@ namespace audio_video_recorder
     }
     else if (audio_format == "wave")
     {
-      _audio_filter = gst_element_factory_make("lamemp3enc", "audio_filter");
-      audio_src_pad = gst_element_get_static_pad(_audio_filter, "src");
-      gst_bin_add(GST_BIN(_pipeline), _audio_filter);
-      if (gst_element_link_many(_audio_source, _audio_filter, NULL) != TRUE ||
-          gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
+      caps = gst_caps_new_simple(
+          "audio/x-raw",
+          "format", G_TYPE_STRING, sample_format.c_str(),
+          "rate", G_TYPE_INT, sample_rate,
+          "channels", G_TYPE_INT, channels,
+          "width",    G_TYPE_INT, depth,
+          "depth",    G_TYPE_INT, depth,
+          "signed",   G_TYPE_BOOLEAN, TRUE,
+          "layout", G_TYPE_STRING, "interleaved",
+          NULL);
+      g_object_set( G_OBJECT(_audio_source), "caps", caps, NULL);
+      gst_caps_unref(caps);
+      if (gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
           gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
           gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
       {
