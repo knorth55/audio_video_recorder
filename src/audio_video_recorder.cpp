@@ -18,7 +18,7 @@ namespace audio_video_recorder
 
   void AudioVideoRecorder::initialize()
   {
-    GstCaps *caps;
+    GstCaps *source_caps, *caps;
     GstPad *audio_src_pad, *audio_mux_pad, *g_audio_mux_pad;
     GstPad *video_src_pad, *video_mux_pad, *g_video_mux_pad;
 
@@ -42,7 +42,7 @@ namespace audio_video_recorder
     ros::param::param<std::string>("~audio_format", audio_format, "mp3");
     ros::param::param<int>("~channels", channels, 1);
     ros::param::param<int>("~depth", depth, 16);
-    ros::param::param<int>("~bitrate", bitrate, 192);
+    ros::param::param<int>("~bitrate", bitrate, 128);
     ros::param::param<int>("~sample_rate", sample_rate, 16000);
     ros::param::param<std::string>("~sample_format", sample_format, "S16LE");
     ros::param::param<int>("~queue_size", queue_size, 10);
@@ -58,6 +58,18 @@ namespace audio_video_recorder
     // _audio_source = gst_element_factory_make("audiotestsrc", "audio_source");
     _audio_source = gst_element_factory_make("appsrc", "audio_source");
     g_object_set(G_OBJECT(_audio_source), "do-timestamp", (do_timestamp) ? TRUE : FALSE, NULL);
+    g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
+    source_caps = gst_caps_new_simple(
+        "audio/x-raw",
+        "format", G_TYPE_STRING, sample_format.c_str(),
+        "rate", G_TYPE_INT, sample_rate,
+        "channels", G_TYPE_INT, channels,
+        "width",    G_TYPE_INT, depth,
+        "depth",    G_TYPE_INT, depth,
+        "signed",   G_TYPE_BOOLEAN, TRUE,
+        "layout", G_TYPE_STRING, "interleaved",
+        NULL);
+    g_object_set( G_OBJECT(_audio_source), "caps", source_caps, NULL);
     gst_bin_add(GST_BIN(_pipeline), _audio_source);
 
     // video source
@@ -148,19 +160,6 @@ namespace audio_video_recorder
     }
     else if (audio_format == "wave")
     {
-      caps = gst_caps_new_simple(
-          "audio/x-raw",
-          "format", G_TYPE_STRING, sample_format.c_str(),
-          "rate", G_TYPE_INT, sample_rate,
-          "channels", G_TYPE_INT, channels,
-          "width",    G_TYPE_INT, depth,
-          "depth",    G_TYPE_INT, depth,
-          "signed",   G_TYPE_BOOLEAN, TRUE,
-          "layout", G_TYPE_STRING, "interleaved",
-          NULL);
-      g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
-      g_object_set( G_OBJECT(_audio_source), "caps", caps, NULL);
-
       _audio_encoder = gst_element_factory_make("wavenc", "audio_encoder");
       gst_bin_add(GST_BIN(_pipeline), _audio_encoder);
       _audio_decoder = gst_element_factory_make("wavparse", "audio_parser");
