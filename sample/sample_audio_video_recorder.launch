@@ -7,7 +7,7 @@
   <arg name="sample_rate" default="44100"/>
   <arg name="sample_format" default="S16LE"/>
 
-  <node name="usb_cam_node" pkg="usb_cam" type="usb_cam_node" />
+  <!-- <node name="usb_cam_node" pkg="usb_cam" type="usb_cam_node" /> -->
 
   <include file="$(find audio_capture)/launch/capture.launch">
     <arg name="format" value="$(arg audio_format)" />
