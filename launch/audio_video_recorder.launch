@@ -5,6 +5,7 @@
   <arg name="do_timestamp" />
   <arg name="audio_format" />
   <arg name="channels" />
+  <arg name="bitrate" />
   <arg name="sample_rate" />
   <arg name="sample_format" />
 
@@ -17,6 +18,7 @@
       do_timestamp: $(arg do_timestamp)
       audio_format: $(arg audio_format)
       channels: $(arg channels)
+      bitrate: $(arg bitrate)
       sample_rate: $(arg sample_rate)
       sample_format: $(arg sample_format)
     </rosparam>

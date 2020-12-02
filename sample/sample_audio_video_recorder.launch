@@ -3,6 +3,7 @@
   <arg name="do_timestamp" default="false"/>
   <arg name="audio_format" default="mp3"/>
   <arg name="channels" default="1"/>
+  <arg name="bitrate" default="128"/>
   <arg name="sample_rate" default="44100"/>
   <arg name="sample_format" default="S16LE"/>
 
@@ -22,6 +23,7 @@
     <arg name="do_timestamp" value="$(arg do_timestamp)" />
     <arg name="audio_format" value="$(arg audio_format)" />
     <arg name="channels" value="$(arg channels)" />
+    <arg name="bitrate" value="$(arg bitrate)" />
     <arg name="sample_rate" value="$(arg sample_rate)" />
     <arg name="sample_format" value="$(arg sample_format)" />
   </include>
