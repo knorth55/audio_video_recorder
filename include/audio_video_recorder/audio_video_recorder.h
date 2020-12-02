@@ -23,7 +23,7 @@ namespace audio_video_recorder
       void initialize();
       void callbackImage(const sensor_msgs::ImageConstPtr &image_msg);
       void callbackAudio(const audio_common_msgs::AudioDataConstPtr &audio_msg);
-
+      static void callbackPad(GstElement *decodebin, GstPad *pad, gpointer data);
     protected:
       boost::shared_ptr<ros::NodeHandle> _nh;
       ros::Subscriber _sub_image, _sub_audio;
@@ -32,7 +32,8 @@ namespace audio_video_recorder
 
       boost::thread _gst_thread;
       GstElement *_pipeline, *_bin, *_mux, *_sink;
-      GstElement *_audio_source, *_audio_filter, *_audio_converter, *_audio_encoder, *_audio_decoder;
+      GstElement *_audio_source, *_audio_filter;
+      GstElement *_audio_encoder, *_audio_decoder;
       GstElement *_video_source, *_video_filter;
       GMainLoop *_loop;
   };
