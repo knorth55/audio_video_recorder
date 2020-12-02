@@ -2,6 +2,7 @@
   <arg name="audio_topic" />
   <arg name="image_topic" />
   <arg name="file_location" />
+  <arg name="file_format" />
   <arg name="do_timestamp" />
   <arg name="audio_format" />
   <arg name="channels" />
@@ -14,7 +15,8 @@
     <remap from="~input/audio" to="$(arg audio_topic)" />
     <remap from="~input/image" to="$(arg image_topic)" />
     <rosparam subst_value="true">
-      file_location: $(arg file_location) 
+      file_location: $(arg file_location)
+      file_format: $(arg file_format)
       do_timestamp: $(arg do_timestamp)
       audio_format: $(arg audio_format)
       channels: $(arg channels)
@@ -23,5 +25,4 @@
       sample_format: $(arg sample_format)
     </rosparam>
   </node>
-        
 </launch>

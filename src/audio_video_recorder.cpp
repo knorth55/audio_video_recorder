@@ -28,6 +28,7 @@ namespace audio_video_recorder
     std::string audio_format;
     std::string device;
     std::string file_location;
+    std::string file_format;
     std::string sample_format;
     int channels;
     int depth;
@@ -39,6 +40,7 @@ namespace audio_video_recorder
 
     // The destination of the audio
     ros::param::param<std::string>("~file_location", file_location, "/tmp/test.avi");
+    ros::param::param<std::string>("~file_format", file_format, "avi");
     ros::param::param<std::string>("~device", device, std::string());
     ros::param::param<bool>("~do_timestamp", do_timestamp, true);
     ros::param::param<std::string>("~audio_format", audio_format, "mp3");
@@ -79,9 +81,16 @@ namespace audio_video_recorder
     video_src_pad = gst_element_get_static_pad(_video_filter, "src");
 
     // mux
-    _mux = gst_element_factory_make("avimux", "mux");
-    audio_mux_pad = gst_element_get_request_pad(_mux, "audio_%u");
-    video_mux_pad = gst_element_get_request_pad(_mux, "video_%u");
+    if (file_format == "avi")
+    {
+      _mux = gst_element_factory_make("avimux", "mux");
+      audio_mux_pad = gst_element_get_request_pad(_mux, "audio_%u");
+      video_mux_pad = gst_element_get_request_pad(_mux, "video_%u");
+    }
+    else
+    {
+      ROS_ERROR("Unsupported file format: %s", file_format.c_str());
+    }
 
     // sink
     _sink = gst_element_factory_make("filesink", "sink");
@@ -165,7 +174,7 @@ namespace audio_video_recorder
     }
     else
     {
-      ROS_ERROR("Unsupported format: %s", audio_format.c_str());
+      ROS_ERROR("Unsupported audio format: %s", audio_format.c_str());
     }
     gst_element_set_state(GST_ELEMENT(_pipeline), GST_STATE_PLAYING);
     _gst_thread = boost::thread( boost::bind(g_main_loop_run, _loop) );
