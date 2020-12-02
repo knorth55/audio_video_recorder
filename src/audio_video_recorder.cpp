@@ -28,6 +28,7 @@ namespace audio_video_recorder
     std::string sample_format;
     int channels;
     int depth;
+    int bitrate;
     int sample_rate;
     bool do_timestamp;
 
@@ -41,6 +42,7 @@ namespace audio_video_recorder
     ros::param::param<std::string>("~audio_format", audio_format, "mp3");
     ros::param::param<int>("~channels", channels, 1);
     ros::param::param<int>("~depth", depth, 16);
+    ros::param::param<int>("~bitrate", bitrate, 192);
     ros::param::param<int>("~sample_rate", sample_rate, 16000);
     ros::param::param<std::string>("~sample_format", sample_format, "S16LE");
     ros::param::param<int>("~queue_size", queue_size, 10);
@@ -55,17 +57,15 @@ namespace audio_video_recorder
     // audio source
     // _audio_source = gst_element_factory_make("audiotestsrc", "audio_source");
     _audio_source = gst_element_factory_make("appsrc", "audio_source");
-    g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
     g_object_set(G_OBJECT(_audio_source), "do-timestamp", (do_timestamp) ? TRUE : FALSE, NULL);
     gst_bin_add(GST_BIN(_pipeline), _audio_source);
-    audio_src_pad = gst_element_get_static_pad(_audio_source, "src");
 
     // video source
     _video_source = gst_element_factory_make("videotestsrc", "video_source");
     gst_bin_add(GST_BIN(_pipeline), _video_source);
     _video_filter = gst_element_factory_make("x264enc", "video_filter");
-    video_src_pad = gst_element_get_static_pad(_video_filter, "src");
     gst_bin_add(GST_BIN(_pipeline), _video_filter);
+    video_src_pad = gst_element_get_static_pad(_video_filter, "src");
 
     // mux
     _mux = gst_element_factory_make("avimux", "mux");
@@ -75,6 +75,8 @@ namespace audio_video_recorder
     // sink
     _sink = gst_element_factory_make("filesink", "sink");
     g_object_set(G_OBJECT(_sink), "location", file_location.c_str(), NULL);
+    // gst_bin_add(GST_BIN(_pipeline), _sink);
+    // g_audio_mux_pad = gst_element_get_static_pad(_sink, "sink");
 
     // bin
     _bin = gst_bin_new("bin");
@@ -86,23 +88,62 @@ namespace audio_video_recorder
       return;
     }
     g_audio_mux_pad = gst_ghost_pad_new("audio_sink", audio_mux_pad);
-    g_video_mux_pad = gst_ghost_pad_new("video_sink", video_mux_pad);
     gst_element_add_pad(_bin, g_audio_mux_pad);
-    gst_element_add_pad(_bin, g_video_mux_pad);
     gst_object_unref(GST_OBJECT(audio_mux_pad));
+
+    g_video_mux_pad = gst_ghost_pad_new("video_sink", video_mux_pad);
+    gst_element_add_pad(_bin, g_video_mux_pad);
     gst_object_unref(GST_OBJECT(video_mux_pad));
+
     gst_element_sync_state_with_parent(_bin);
     gst_bin_add(GST_BIN(_pipeline), _bin);
 
     ROS_INFO("Saving file to %s", file_location.c_str());
     if (audio_format == "mp3")
     {
-      if (gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
-          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
-          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
+      // TODO: mp3 is not working
+      caps = gst_caps_new_simple(
+          "audio/x-raw",
+          "format", G_TYPE_STRING, sample_format.c_str(),
+          "rate", G_TYPE_INT, sample_rate,
+          "channels", G_TYPE_INT, channels,
+          "width",    G_TYPE_INT, depth,
+          "depth",    G_TYPE_INT, depth,
+          "signed",   G_TYPE_BOOLEAN, TRUE,
+          NULL);
+      _audio_filter = gst_element_factory_make("capsfilter", "audio_filter");
+      g_object_set( G_OBJECT(_audio_filter), "caps", caps, NULL);
+      gst_caps_unref(caps);
+      gst_bin_add(GST_BIN(_pipeline), _audio_filter);
+
+      _audio_converter = gst_element_factory_make("audioconvert", "audio_converter");
+      gst_bin_add(GST_BIN(_pipeline), _audio_converter);
+
+      _audio_encoder = gst_element_factory_make("lamemp3enc", "audio_encoder");
+      g_object_set( G_OBJECT(_audio_encoder), "target", 1, NULL);
+      g_object_set( G_OBJECT(_audio_encoder), "bitrate", bitrate, NULL);
+      gst_bin_add(GST_BIN(_pipeline), _audio_encoder);
+
+      _audio_decoder = gst_element_factory_make("mpg123audiodec", "audio_decoder");
+      gst_bin_add(GST_BIN(_pipeline), _audio_decoder);
+      audio_src_pad = gst_element_get_static_pad(_audio_decoder, "src");
+
+      if (
+          gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
+          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK ||
+          gst_element_link_many(
+            _audio_source, _audio_filter, _audio_converter,
+            _audio_encoder, _audio_decoder, NULL) != TRUE ||
+          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK
+          )
       {
+        ROS_ERROR("failed to link mp3");
         ROS_ERROR("failed to link gstreamer");
         return;
+      }
+      else
+      {
+        ROS_INFO("succeeded to link mp3");
       }
     }
     else if (audio_format == "wave")
@@ -117,14 +158,28 @@ namespace audio_video_recorder
           "signed",   G_TYPE_BOOLEAN, TRUE,
           "layout", G_TYPE_STRING, "interleaved",
           NULL);
+      g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
       g_object_set( G_OBJECT(_audio_source), "caps", caps, NULL);
-      gst_caps_unref(caps);
-      if (gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
-          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK ||
-          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK)
+
+      _audio_encoder = gst_element_factory_make("wavenc", "audio_encoder");
+      gst_bin_add(GST_BIN(_pipeline), _audio_encoder);
+      _audio_decoder = gst_element_factory_make("wavparse", "audio_parser");
+      gst_bin_add(GST_BIN(_pipeline), _audio_decoder);
+      audio_src_pad = gst_element_get_static_pad(_audio_decoder, "src");
+      if (
+          gst_element_link_many(_video_source, _video_filter, NULL) != TRUE ||
+          gst_pad_link(video_src_pad, g_video_mux_pad) != GST_PAD_LINK_OK ||
+          gst_element_link_many(_audio_source, _audio_encoder, _audio_decoder, NULL) != TRUE ||
+          gst_pad_link(audio_src_pad, g_audio_mux_pad) != GST_PAD_LINK_OK
+          )
       {
+        ROS_ERROR("failed to link wave");
         ROS_ERROR("failed to link gstreamer");
         return;
+      }
+      else
+      {
+        ROS_INFO("succeeded to link wave");
       }
     }
     else
