@@ -191,6 +191,7 @@ namespace audio_video_recorder
 
   void AudioVideoRecorder::callbackImage(const sensor_msgs::ImageConstPtr &image_msg)
   {
+    // TODO: not implemented yet
     return;
   }
 
