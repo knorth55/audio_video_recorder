@@ -33,8 +33,11 @@ namespace audio_video_recorder
       boost::thread _gst_thread;
       GstElement *_pipeline, *_bin, *_mux, *_sink;
       GstElement *_audio_source, *_audio_filter;
+      GstElement *_audio_source_queue, *_audio_queue;
       GstElement *_audio_encoder, *_audio_decoder;
       GstElement *_video_source, *_video_filter;
+      GstElement *_video_source_queue, *_video_queue;
+      GstElement *_video_convert;
       GMainLoop *_loop;
   };
 }
