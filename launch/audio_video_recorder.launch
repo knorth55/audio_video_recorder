@@ -1,28 +1,28 @@
 <launch>
   <arg name="audio_topic" />
   <arg name="image_topic" />
+  <arg name="queue_size" />
+  <arg name="do_timestamp" />
   <arg name="file_location" />
   <arg name="file_format" />
-  <arg name="do_timestamp" />
+  <arg name="audio_channels" />
+  <arg name="audio_sample_rate" />
   <arg name="audio_format" />
-  <arg name="channels" />
-  <arg name="bitrate" />
-  <arg name="sample_rate" />
-  <arg name="sample_format" />
+  <arg name="audio_sample_format" />
 
   <node name="audio_video_recorder" pkg="audio_video_recorder"
         type="audio_video_recorder" output="screen">
     <remap from="~input/audio" to="$(arg audio_topic)" />
     <remap from="~input/image" to="$(arg image_topic)" />
     <rosparam subst_value="true">
+      queue_size: $(arg queue_size)
+      do_timestamp: $(arg do_timestamp)
       file_location: $(arg file_location)
       file_format: $(arg file_format)
-      do_timestamp: $(arg do_timestamp)
+      audio_channels: $(arg audio_channels)
+      audio_sample_rate: $(arg audio_sample_rate)
       audio_format: $(arg audio_format)
-      channels: $(arg channels)
-      bitrate: $(arg bitrate)
-      sample_rate: $(arg sample_rate)
-      sample_format: $(arg sample_format)
+      audio_sample_format: $(arg audio_sample_format)
     </rosparam>
   </node>
 </launch>

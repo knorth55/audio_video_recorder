@@ -18,52 +18,53 @@ namespace audio_video_recorder
 
   void AudioVideoRecorder::initialize()
   {
-    GstCaps *source_caps;
+    GstCaps *audio_caps;
     GstPad *audio_src_pad;
     GstPad *audio_mux_pad, *g_audio_mux_pad;
     GstPad *audio_cb_pad;
+
     GstPad *video_src_pad;
     GstPad *video_mux_pad, *g_video_mux_pad;
 
-    std::string audio_format;
-    std::string device;
+    int queue_size;
+    bool do_timestamp;
     std::string file_location;
     std::string file_format;
-    std::string sample_format;
-    int channels;
-    int depth;
-    int bitrate;
-    int sample_rate;
-    bool do_timestamp;
 
-    int queue_size;
+    int audio_channels;
+    int audio_depth;
+    int audio_sample_rate;
+    std::string audio_format;
+    std::string audio_sample_format;
 
-    // The destination of the audio
+    // common parameters
+    ros::param::param<int>("~queue_size", queue_size, 10);
+    ros::param::param<bool>("~do_timestamp", do_timestamp, true);
     ros::param::param<std::string>("~file_location", file_location, "/tmp/test.avi");
     ros::param::param<std::string>("~file_format", file_format, "avi");
-    ros::param::param<std::string>("~device", device, std::string());
-    ros::param::param<bool>("~do_timestamp", do_timestamp, true);
+
+    // audio parameters
+    ros::param::param<int>("~audio_channels", audio_channels, 1);
+    ros::param::param<int>("~audio_depth", audio_depth, 16);
+    ros::param::param<int>("~audio_sample_rate", audio_sample_rate, 16000);
     ros::param::param<std::string>("~audio_format", audio_format, "mp3");
-    ros::param::param<int>("~channels", channels, 1);
-    ros::param::param<int>("~depth", depth, 16);
-    ros::param::param<int>("~bitrate", bitrate, 128);
-    ros::param::param<int>("~sample_rate", sample_rate, 16000);
-    ros::param::param<std::string>("~sample_format", sample_format, "S16LE");
-    ros::param::param<int>("~queue_size", queue_size, 10);
+    ros::param::param<std::string>("~audio_sample_format", audio_sample_format, "S16LE");
 
     _nh.reset (new ros::NodeHandle ("~"));
-    _sub_image = _nh->subscribe("input/image", queue_size, &AudioVideoRecorder::callbackImage, this);
-    _sub_audio = _nh->subscribe("input/audio", queue_size, &AudioVideoRecorder::callbackAudio, this);
+    _sub_image = _nh->subscribe(
+        "input/image", queue_size, &AudioVideoRecorder::callbackImage, this);
+    _sub_audio = _nh->subscribe(
+        "input/audio", queue_size, &AudioVideoRecorder::callbackAudio, this);
 
     _loop = g_main_loop_new(NULL, false);
     _pipeline = gst_pipeline_new("app_pipeline");
-    source_caps = gst_caps_new_simple(
+    audio_caps = gst_caps_new_simple(
         "audio/x-raw",
-        "format", G_TYPE_STRING, sample_format.c_str(),
-        "rate", G_TYPE_INT, sample_rate,
-        "channels", G_TYPE_INT, channels,
-        "width",    G_TYPE_INT, depth,
-        "depth",    G_TYPE_INT, depth,
+        "format", G_TYPE_STRING, audio_sample_format.c_str(),
+        "rate", G_TYPE_INT, audio_sample_rate,
+        "channels", G_TYPE_INT, audio_channels,
+        "width",    G_TYPE_INT, audio_depth,
+        "depth",    G_TYPE_INT, audio_depth,
         "signed",   G_TYPE_BOOLEAN, TRUE,
         "layout", G_TYPE_STRING, "interleaved",
         NULL);
@@ -124,7 +125,7 @@ namespace audio_video_recorder
       gst_bin_add(GST_BIN(_pipeline), _audio_decoder);
 
       _audio_filter = gst_element_factory_make("capsfilter", "audio_filter");
-      g_object_set(G_OBJECT(_audio_filter), "caps", source_caps, NULL);
+      g_object_set(G_OBJECT(_audio_filter), "caps", audio_caps, NULL);
       gst_bin_add(GST_BIN(_pipeline), _audio_filter);
       audio_src_pad = gst_element_get_static_pad(_audio_filter, "src");
 
@@ -143,11 +144,11 @@ namespace audio_video_recorder
       {
         ROS_INFO("succeeded to link mp3");
       }
-      gst_caps_unref(source_caps);
+      gst_caps_unref(audio_caps);
     }
     else if (audio_format == "wave")
     {
-      g_object_set(G_OBJECT(_audio_source), "caps", source_caps, NULL);
+      g_object_set(G_OBJECT(_audio_source), "caps", audio_caps, NULL);
       g_object_set(G_OBJECT(_audio_source), "format", GST_FORMAT_TIME, NULL);
 
       _audio_encoder = gst_element_factory_make("wavenc", "audio_encoder");
@@ -170,7 +171,7 @@ namespace audio_video_recorder
       {
         ROS_INFO("succeeded to link wave");
       }
-      gst_caps_unref(source_caps);
+      gst_caps_unref(audio_caps);
     }
     else
     {
