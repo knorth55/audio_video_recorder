@@ -9,6 +9,10 @@
   <arg name="audio_sample_rate" />
   <arg name="audio_format" />
   <arg name="audio_sample_format" />
+  <arg name="video_height" />
+  <arg name="video_width" />
+  <arg name="video_framerate" />
+  <arg name="video_encoding" />
 
   <node name="audio_video_recorder" pkg="audio_video_recorder"
         type="audio_video_recorder" output="screen">
@@ -23,6 +27,10 @@
       audio_sample_rate: $(arg audio_sample_rate)
       audio_format: $(arg audio_format)
       audio_sample_format: $(arg audio_sample_format)
+      video_height: $(arg video_height)
+      video_width: $(arg video_width)
+      video_framerate: $(arg video_framerate)
+      video_encoding: $(arg video_encoding)
     </rosparam>
   </node>
 </launch>
