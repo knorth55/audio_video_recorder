@@ -3,7 +3,8 @@
 
 ROS package for recording audio and video synchronously
 
-![](.media/pr2_sample.png)
+![](.media/pr2_sample.gif)
+[Full video on Google Drive](https://drive.google.com/file/d/1TWnRKbOdq6jPza82eNhhjn56lQXRxWjl/view?usp=sharing)
 
 ## Sample
 
