@@ -1,6 +1,6 @@
 <launch>
-  <arg name="audio_topic" />
-  <arg name="image_topic" />
+  <arg name="audio_topic_name" />
+  <arg name="image_topic_name" />
   <arg name="queue_size" />
   <arg name="do_timestamp" />
   <arg name="file_location" />
@@ -16,8 +16,8 @@
 
   <node name="audio_video_recorder" pkg="audio_video_recorder"
         type="audio_video_recorder" output="screen">
-    <remap from="~input/audio" to="$(arg audio_topic)" />
-    <remap from="~input/image" to="$(arg image_topic)" />
+    <remap from="~input/audio" to="$(arg audio_topic_name)" />
+    <remap from="~input/image" to="$(arg image_topic_name)" />
     <rosparam subst_value="true">
       queue_size: $(arg queue_size)
       do_timestamp: $(arg do_timestamp)
