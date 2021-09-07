@@ -1,6 +1,7 @@
 # audio_video_recorder
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/knorth55/audio_video_recorder/CI/main)
+[![main](https://github.com/knorth55/audio_video_recorder/actions/workflows/main.yml/badge.svg)](https://github.com/knorth55/audio_video_recorder/actions/workflows/main.yml)
+[![linter](https://github.com/knorth55/audio_video_recorder/actions/workflows/linter.yaml/badge.svg)](https://github.com/knorth55/audio_video_recorder/actions/workflows/linter.yaml)
 
 ROS package for recording audio and video synchronously
 
